@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Positioning - Al Ries | Interactive Notes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .serif-text {
+            font-family: 'Merriweather', serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .highlight-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .highlight-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Heart Animation */
+        .heart-btn {
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .heart-btn:active {
+            transform: scale(0.8);
+        }
+        .heart-btn.liked i {
+            fill: #ef4444; /* Tailwind red-500 */
+            color: #ef4444;
+            animation: pulse 0.3s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg backdrop-blur-md bg-opacity-95">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    <div class="relative">
+                        <i data-lucide="book-open" class="h-6 w-6 text-yellow-400"></i>
+                        <span class="absolute -top-1 -right-1 h-2 w-2 bg-blue-500 rounded-full animate-pulse"></span>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight">Positioning</h1>
+                        <p class="text-xs text-slate-400 font-light hidden sm:block">The Battle for Your Mind &bull; Al Ries</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="showRandomQuote()" class="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-3 py-1.5 rounded-full text-sm font-semibold transition-all hover:shadow-lg hover:scale-105 active:scale-95">
+                        <i data-lucide="shuffle" class="h-4 w-4"></i>
+                        <span class="hidden sm:inline">Random Wisdom</span>
+                    </button>
+                    <a href="#citation" class="text-slate-300 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full">
+                        <i data-lucide="info" class="h-5 w-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Layout -->
+    <div class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+        
+        <!-- Sidebar (Chapters & Filters) -->
+        <aside class="w-full lg:w-64 flex-shrink-0">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar">
+                
+                <!-- Main Filters -->
+                <div class="mb-6 space-y-1">
+                    <button onclick="filterByChapter('all')" id="btn-all" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-blue-700">
+                        <i data-lucide="layers" class="h-4 w-4"></i>
+                        All Notes
+                    </button>
+                    <button onclick="filterByFavorites()" id="btn-favorites" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-600 hover:bg-slate-50 hover:text-pink-600">
+                        <i data-lucide="heart" class="h-4 w-4"></i>
+                        Favorites
+                        <span id="fav-count-badge" class="ml-auto bg-slate-100 text-slate-600 py-0.5 px-2 rounded-full text-xs hidden">0</span>
+                    </button>
+                </div>
+
+                <hr class="border-slate-100 my-4">
+
+                <!-- Themes -->
+                <div class="mb-6">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="h-3 w-3"></i> Key Themes
+                    </h2>
+                    <div class="flex flex-wrap gap-2" id="themes-container">
+                        <!-- Themes injected here -->
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 my-4">
+
+                <!-- Chapters -->
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Chapters</h2>
+                <nav id="chapter-list" class="space-y-1">
+                    <!-- Chapters injected via JS -->
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Feed -->
+        <main class="flex-1 min-w-0">
+            
+            <!-- Search & Filters -->
+            <div class="mb-8">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors"></i>
+                    </div>
+                    <input type="text" id="search-input" 
+                        class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm transition-all focus:shadow-md" 
+                        placeholder="Search notes..."
+                    >
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <span class="text-xs text-slate-400 border border-slate-200 rounded px-1.5 py-0.5 hidden sm:block">⌘K</span>
+                    </div>
+                </div>
+                <div class="mt-2 flex justify-between items-center text-sm text-slate-500 px-1">
+                    <span id="result-count">Showing all notes</span>
+                    <button onclick="resetFilters()" class="text-blue-600 hover:text-blue-800 font-medium hidden flex items-center gap-1" id="clear-search">
+                        <i data-lucide="x-circle" class="h-3 w-3"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div id="notes-container" class="space-y-8">
+                <!-- Notes injected via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                    <i data-lucide="search-x" class="h-10 w-10 text-slate-400"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-slate-900 mb-2">No notes found</h3>
+                <p class="text-slate-500 max-w-sm mx-auto mb-6">We couldn't find any notes matching your current filters or search query.</p>
+                <button onclick="resetFilters()" class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm">
+                    Clear all filters
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Random Quote Modal -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300 relative border-t-4 border-yellow-400">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+                <i data-lucide="x" class="h-6 w-6"></i>
+            </button>
+            <div class="mb-2 text-yellow-600 font-semibold tracking-wide text-xs uppercase flex items-center gap-2">
+                <i data-lucide="lightbulb" class="h-4 w-4"></i> Random Insight
+            </div>
+            <blockquote class="serif-text text-xl sm:text-2xl text-slate-800 leading-relaxed mb-6" id="modal-text">
+                <!-- Random text here -->
+            </blockquote>
+            <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                <div class="text-sm text-slate-500">
+                    <span class="font-medium text-slate-900" id="modal-chapter">Chapter</span> &bull; Loc <span id="modal-loc">0</span>
+                </div>
+                <button onclick="copyModalText()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 hover:bg-blue-50 px-2 py-1 rounded transition-colors">
+                    <i data-lucide="copy" class="h-4 w-4"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto" id="citation">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-sm text-center md:text-left">
+                <span class="font-semibold text-slate-700">Citation:</span> Ries, Al. <em>Positioning</em>. 2022. Kindle edition.
+            </p>
+            <div class="flex items-center gap-4 text-xs text-slate-400">
+                <span>Interactive Notes</span>
+                <span>&bull;</span>
+                <span>AI Generated</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 z-50">
+        <i data-lucide="check-circle" class="h-5 w-5 text-green-400"></i>
+        <span class="font-medium text-sm" id="toast-message">Action successful!</span>
+    </div>
+
+    <script>
+        // --- Data ---
+        const bookData = [
+            {
+                title: "Prologue / Key Principles",
+                id: "prologue",
+                notes: [
+                    { loc: "75", text: "Key principle: Don’t try to do everything yourself. Find a horse to ride" }
+                ]
+            },
+            {
+                title: "Introduction",
+                id: "intro",
+                notes: [
+                    { loc: "110", text: "If only people took the time to communicate their feelings, to explain their reasons, the assumption is that many of the problems of the world would somehow disappear." },
+                    { loc: "126", text: "positioning is not what you do to a product. Positioning is what you do to the mind of the prospect. That is, you position the product in the mind of the prospect." },
+                    { loc: "144", text: "Anyone can use positioning strategy to get ahead in the game of life. And look at it this way: If you don’t understand and use the principles, your competitors undoubtedly will." }
+                ]
+            },
+            {
+                title: "Chapter 1. What Positioning is All About",
+                id: "ch1",
+                notes: [
+                    { loc: "165", text: "In general, the mind accepts only that which matches prior knowledge or experience." },
+                    { loc: "166", text: "Once a mind is made up, it’s almost impossible to change it." },
+                    { loc: "193", text: "Only when you appreciate the nature of the problem can you understand the solution." },
+                    { loc: "196", text: "You look for the solution to your problem inside the prospect’s mind." },
+                    { loc: "198", text: "“In politics,” said John Lindsay, “the perception is the reality.” So, too, in advertising, in business, and in life." }
+                ]
+            },
+            {
+                title: "Chapter 2. The Assault on the Mind",
+                id: "ch2",
+                notes: [
+                    { loc: "269", text: "Even the human body has become a walking billboard for Adidas, Gucci, Benetton, and Gloria Vanderbilt." }
+                ]
+            },
+            {
+                title: "Chapter 3. Getting Into the Mind",
+                id: "ch3",
+                notes: [
+                    { loc: "313", text: "In our overcommunicated society, the paradox is that nothing is more important than communication." },
+                    { loc: "315", text: "What’s called luck is usually an outgrowth of successful communication. Saying the right things to the right person at the right time. Finding what the NASA people in Houston call a window in space." },
+                    { loc: "319", text: "The easy way to get into a person’s mind is to be first." },
+                    { loc: "338", text: "If you want to be successful in love or in business, you must appreciate the importance of getting into the mind first." },
+                    { loc: "357", text: "It’s better to be a big fish in a small pond (and then increase the size of the pond) than to be a small fish in a big pond." },
+                    { loc: "421", text: "For many people or products today, one roadway to success is to look at what your competitors are doing and then subtract the poetry or creativity which has become a barrier to getting the message into the mind. With a purified and simplified message, you can then penetrate the prospect’s mind." }
+                ]
+            },
+            {
+                title: "Chapter 4. Those Little Ladders in Your Head",
+                id: "ch4",
+                notes: [
+                    { loc: "477", text: "if you have a truly new product, it’s often better to tell the prospect what the product is not, rather than what it is." },
+                    { loc: "497", text: "Establishing the “against” position is a classic positioning maneuver. If a company isn’t the first, then it has to be the first to occupy the No. 2 position. It’s not an easy task." },
+                    { loc: "511", text: "F.W.M.T.S. trap: “Forgot what made them successful.”" },
+                    { loc: "520", text: "If you want to be successful today, you can’t ignore the competitor’s position. Nor can you walk away from your own. In the immortal words of Joan Didion, “Play it as it lays.”" }
+                ]
+            },
+            {
+                title: "Chapter 5. You Can’t Get There from Here",
+                id: "ch5",
+                notes: [
+                    { loc: "588", text: "(As the Eskimo remarked, the lead dog is the only one who enjoys a change of view.)" }
+                ]
+            },
+            {
+                title: "Chapter 6. Positioning of a Leader",
+                id: "ch6",
+                notes: [
+                    { loc: "638", text: "(Old wrestling expression: You can’t get pinned when you’re on top.)" }
+                ]
+            },
+            {
+                title: "Chapter 7. Positioning of a Follower",
+                id: "ch7",
+                notes: [
+                    { loc: "835", text: "To win in today’s competitive environment, you have to go out and make friends, carve out a specific niche in the market. Even if you lose a few doing so." }
+                ]
+            },
+            {
+                title: "Chapter 10. The No-Name Trap",
+                id: "ch10",
+                notes: [
+                    { loc: "1192", text: "learning to speak requires much less effort than learning to read." },
+                    { loc: "1264", text: "With a good name, your positioning job is going to be a lot easier." }
+                ]
+            },
+            {
+                title: "Chapter 11. The Free-Ride Trap",
+                id: "ch11",
+                notes: [
+                    { loc: "1285", text: "The typical life cycle of a corporation starts with an entrepreneur with an idea. If successful, you can count on two things, death and taxes, to ensure that the operation will end up as part of a conglomerate." },
+                    { loc: "1295", text: "One reason why the principles of name selection remain so elusive is the Charles Lindbergh syndrome. If you get into the mind first, any name is going to work. If you didn’t get there first, then you are flirting with disaster if you don’t select an appropriate name." },
+                    { loc: "1301", text: "Procter & Gamble carefully positions each product so that it occupies a unique niche in the mind." },
+                    { loc: "1328", text: "It’s bad enough when someone tries to take your position away. It’s tragic when you do it to yourself." },
+                    { loc: "1330", text: "In politics, in marketing, in life, anonymity is a resource, easily squandered by too much publicity." },
+                    { loc: "1331", text: "“You can’t beat somebody with a nobody,” goes the old political saying. But today you can." },
+                    { loc: "1336", text: "The media are constantly looking for the new and different, the fresh young face." },
+                    { loc: "1336", text: "In dealing with media, you must conserve your anonymity until you are ready to spend it. And then when you spend it, spend it big. Always keeping in mind that the objective is not publicity or communication for its own sake, but publicity to achieve a position in the prospect’s mind." },
+                    { loc: "1338", text: "An unknown company with an unknown product has much more to gain from publicity than a well-known company with an established product." },
+                    { loc: "1340", text: "“In the future everyone will be famous for 15 minutes,” Andy Warhol once predicted. When your 15 minutes arrive, make the most of every second." }
+                ]
+            },
+            {
+                title: "Chapter 12. The Line-Extension Trap",
+                id: "ch12",
+                notes: [
+                    { loc: "1372", text: "What actually gets driven into the mind is not the product at all but the “name” of the product, which the prospect uses as a hook to hang attributes on." },
+                    { loc: "1376", text: "In a physical sense, the name is also like the point of a knife. It opens up the mind to let the message penetrate. With the right name, the product fills the creneau and stays there." },
+                    { loc: "1386", text: "many products with the wrong name are sold “in spite of” rather than “because of.”" },
+                    { loc: "1389", text: "In positioning, the shortest distance between two points is not necessarily the best strategy. The obvious name isn’t always the best name. Inside-out thinking is the biggest barrier to success. Outside-in thinking is the best aid." },
+                    { loc: "1447", text: "This, of course, is the essence of positioning. To make your brand name stand for the generic. So the prospect freely uses the brand name for the generic." }
+                ]
+            },
+            {
+                title: "Chapter 13. When Line Extension Can Work",
+                id: "ch13",
+                notes: [
+                    { loc: "1647", text: "The truth is, many products are sold, few are positioned." },
+                    { loc: "1650", text: "So we offer some rules of the road that will tell you when to use the house name and when not to. 1. Expected volume. Potential winners should not bear the house name. Small-volume products should. 2. Competition. In a vacuum, the brand should not bear the house name. In a crowded field, it should. 3. Advertising support. Big-budget brands should not bear the house name. Small-budget brands should. 4. Significance. Breakthrough products should not bear the house name. Commodity products such as chemicals should. 5. Distribution. Off-the-shelf items should not bear the house name. Items sold by sales reps should." }
+                ]
+            },
+            {
+                title: "Chapter 14. Positioning a Company: Xerox",
+                id: "ch14",
+                notes: [
+                    { loc: "1784", text: "In the positioning game you can’t sit still. You must constantly be alert to keep your position targeted to today’s problems and today’s markets." }
+                ]
+            },
+            {
+                title: "Chapter 15. Positioning a Country: Belgium",
+                id: "ch15",
+                notes: [
+                    { loc: "1853", text: "The lesson here is that a successful positioning program requires a major long-term commitment by the people in charge. Whether it’s the head of a corporation, a church, an airline, or a country. In a constantly changing political environment, this is difficult to accomplish." }
+                ]
+            },
+            {
+                title: "Chapter 17. Positioning a Product: Milk Duds",
+                id: "ch17",
+                notes: [
+                    { loc: "1946", text: "The solution to a positioning problem is usually found in the prospect’s mind, not in the product." }
+                ]
+            },
+            {
+                title: "Chapter 19. Positioning a Long Island Bank",
+                id: "ch19",
+                notes: [
+                    { loc: "2036", text: "“Mapping the prospect’s mind” is normally done with a research technique called “semantic differential.”" }
+                ]
+            },
+            {
+                title: "Chapter 20. Positioning a New Jersey Bank",
+                id: "ch20",
+                notes: [
+                    { loc: "2111", text: "As an Avis ad once said, “Rent from us. The line at our counter is shorter.”" },
+                    { loc: "2143", text: "The essence of a good positioning strategy is that it transcends every aspect of a company. You know you have a winner when you run it up the corporate flagpole and everybody salutes." }
+                ]
+            },
+            {
+                title: "Chapter 23. Positioning Yourself and Your Career",
+                id: "ch23",
+                notes: [
+                    { loc: "2269", text: "Your reputation will probably be better within the company if you try many times and succeed sometimes than if you fear failure and only try for sure things." },
+                    { loc: "2289", text: "Confusion is the enemy of successful positioning." },
+                    { loc: "2302", text: "The secret of success is to keep your nose to the grindstone, do your job better than the next person, and fame and fortune will come your way, right? Wrong. Trying harder is rarely the pathway to success. Trying smarter is the better way." },
+                    { loc: "2307", text: "The truth is, the road to fame and fortune is rarely found within yourself. The only sure way to success is to find yourself a horse to ride. It may be difficult for the ego to accept, but success in life is based more on what others can do for you than on what you can do for yourself." }
+                ]
+            },
+            {
+                title: "Chapter 24. Positioning Your Business",
+                id: "ch24",
+                notes: [
+                    { loc: "2410", text: "The job market today belongs to the people who can define and position themselves as specialists." },
+                    { loc: "2444", text: "Owning a position in the mind is like owning a valuable piece of real estate. Once you give it up, you might find it’s impossible to get it back again." }
+                ]
+            },
+            {
+                title: "Chapter 25. Playing the Positioning Game",
+                id: "ch25",
+                notes: [
+                    { loc: "2582", text: "You can’t be all things to all people and still have a powerful position." }
+                ]
+            }
+        ];
+
+        // Themes Configuration
+        const themes = [
+            { id: 'mind', label: 'Mind', keywords: ['mind', 'perception', 'head', 'remember'] },
+            { id: 'leader', label: 'Leadership', keywords: ['leader', 'first', 'top', 'success'] },
+            { id: 'competition', label: 'Competition', keywords: ['competitor', 'war', 'battle', 'enemy', 'against'] },
+            { id: 'name', label: 'Naming', keywords: ['name', 'brand', 'label'] },
+            { id: 'communication', label: 'Comm.', keywords: ['communicat', 'message', 'advertising', 'media'] }
+        ];
+
+        // --- State Management ---
+        let state = {
+            filterType: 'all', // 'all', 'chapter', 'favorites', 'theme'
+            filterValue: 'all', // chapterId, 'favorites', or themeId
+            searchQuery: '',
+            favorites: JSON.parse(localStorage.getItem('positioning_favorites')) || []
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            notesContainer: document.getElementById('notes-container'),
+            chapterList: document.getElementById('chapter-list'),
+            themesContainer: document.getElementById('themes-container'),
+            searchInput: document.getElementById('search-input'),
+            resultCount: document.getElementById('result-count'),
+            emptyState: document.getElementById('empty-state'),
+            clearSearchBtn: document.getElementById('clear-search'),
+            btnAll: document.getElementById('btn-all'),
+            btnFavorites: document.getElementById('btn-favorites'),
+            favCountBadge: document.getElementById('fav-count-badge'),
+            // Modal
+            modalOverlay: document.getElementById('modal-overlay'),
+            modalContent: document.getElementById('modal-content'),
+            modalText: document.getElementById('modal-text'),
+            modalChapter: document.getElementById('modal-chapter'),
+            modalLoc: document.getElementById('modal-loc'),
+            // Toast
+            toast: document.getElementById('toast'),
+            toastMessage: document.getElementById('toast-message')
+        };
+
+        // --- Initialization ---
+        function init() {
+            renderSidebar();
+            renderThemes();
+            updateFavCount();
+            renderNotes();
+            lucide.createIcons();
+
+            // Event Listeners
+            els.searchInput.addEventListener('input', (e) => {
+                state.searchQuery = e.target.value.toLowerCase();
+                renderNotes();
+            });
+
+            // Keyboard Shortcut for Search
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                    e.preventDefault();
+                    els.searchInput.focus();
+                }
+            });
+        }
+
+        // --- Logic: Sidebar & Themes ---
+
+        function renderSidebar() {
+            let html = '';
+            bookData.forEach(chapter => {
+                const isActive = state.filterType === 'chapter' && state.filterValue === chapter.id;
+                html += `
+                    <button onclick="filterByChapter('${chapter.id}')" 
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors truncate flex items-center justify-between group
+                        ${isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}">
+                        <span class="truncate">${chapter.title}</span>
+                        ${isActive ? '<i data-lucide="chevron-right" class="h-3 w-3 flex-shrink-0"></i>' : ''}
+                    </button>
+                `;
+            });
+            els.chapterList.innerHTML = html;
+        }
+
+        function renderThemes() {
+            let html = '';
+            themes.forEach(theme => {
+                const isActive = state.filterType === 'theme' && state.filterValue === theme.id;
+                const activeClasses = 'bg-slate-800 text-white shadow-md ring-2 ring-slate-800 ring-offset-2';
+                const inactiveClasses = 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+
+                html += `
+                    <button onclick="filterByTheme('${theme.id}')" 
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${isActive ? activeClasses : inactiveClasses}">
+                        ${theme.label}
+                    </button>
+                `;
+            });
+            els.themesContainer.innerHTML = html;
+        }
+
+        // --- Logic: Filtering ---
+
+        function filterByChapter(id) {
+            state.filterType = id === 'all' ? 'all' : 'chapter';
+            state.filterValue = id;
+            updateUIState();
+            renderNotes();
+            scrollToContent();
+        }
+
+        function filterByFavorites() {
+            state.filterType = 'favorites';
+            state.filterValue = 'favorites';
+            updateUIState();
+            renderNotes();
+            scrollToContent();
+        }
+
+        function filterByTheme(id) {
+            // Toggle off if clicking active theme
+            if (state.filterType === 'theme' && state.filterValue === id) {
+                resetFilters();
+                return;
+            }
+            state.filterType = 'theme';
+            state.filterValue = id;
+            updateUIState();
+            renderNotes();
+            scrollToContent();
+        }
+
+        function resetFilters() {
+            state.filterType = 'all';
+            state.filterValue = 'all';
+            state.searchQuery = '';
+            els.searchInput.value = '';
+            updateUIState();
+            renderNotes();
+        }
+
+        function updateUIState() {
+            // Update "All" button style
+            if (state.filterType === 'all') {
+                els.btnAll.classList.add('bg-blue-50', 'text-blue-700');
+                els.btnAll.classList.remove('text-slate-600', 'hover:bg-slate-50');
+            } else {
+                els.btnAll.classList.remove('bg-blue-50', 'text-blue-700');
+                els.btnAll.classList.add('text-slate-600', 'hover:bg-slate-50');
+            }
+
+            // Update "Favorites" button style
+            if (state.filterType === 'favorites') {
+                els.btnFavorites.classList.add('bg-pink-50', 'text-pink-600');
+                els.btnFavorites.classList.remove('text-slate-600', 'hover:bg-slate-50');
+            } else {
+                els.btnFavorites.classList.remove('bg-pink-50', 'text-pink-600');
+                els.btnFavorites.classList.add('text-slate-600', 'hover:bg-slate-50');
+            }
+
+            // Re-render sidebar and themes to update active states
+            renderSidebar();
+            renderThemes();
+        }
+
+        function scrollToContent() {
+            if (window.innerWidth < 1024) {
+                els.notesContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // --- Logic: Rendering Notes ---
+
+        function renderNotes() {
+            // Clear Button visibility
+            if (state.searchQuery || state.filterType !== 'all') {
+                els.clearSearchBtn.classList.remove('hidden');
+            } else {
+                els.clearSearchBtn.classList.add('hidden');
+            }
+
+            let html = '';
+            let filteredNotesCount = 0;
+
+            // Helper to determine if a note matches the current Theme filter
+            const matchesTheme = (text, themeId) => {
+                const theme = themes.find(t => t.id === themeId);
+                if (!theme) return false;
+                return theme.keywords.some(k => text.toLowerCase().includes(k));
+            };
+
+            bookData.forEach(chapter => {
+                // Primary Filter: Chapter
+                if (state.filterType === 'chapter' && state.filterValue !== chapter.id) return;
+
+                // Process notes
+                const matchingNotes = chapter.notes.filter(note => {
+                    // 1. Search Query
+                    if (state.searchQuery && !note.text.toLowerCase().includes(state.searchQuery)) return false;
+                    
+                    // 2. Favorites Filter
+                    if (state.filterType === 'favorites' && !state.favorites.includes(note.loc)) return false;
+
+                    // 3. Theme Filter
+                    if (state.filterType === 'theme' && !matchesTheme(note.text, state.filterValue)) return false;
+
+                    return true;
+                });
+
+                if (matchingNotes.length > 0) {
+                    html += `
+                        <div class="animate-fade-in">
+                            <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 sticky top-16 bg-slate-50 py-2 z-10 backdrop-blur-sm bg-opacity-90">
+                                <span class="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+                                ${chapter.title}
+                            </h2>
+                            <div class="grid gap-4">
+                    `;
+
+                    matchingNotes.forEach(note => {
+                        filteredNotesCount++;
+                        const isLiked = state.favorites.includes(note.loc);
+                        
+                        html += `
+                            <div class="highlight-card bg-white p-6 rounded-xl border border-slate-200 relative group">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Highlight
+                                            </span>
+                                            <span class="text-xs text-slate-400 font-mono">Loc ${note.loc}</span>
+                                        </div>
+                                        <blockquote class="serif-text text-lg text-slate-700 leading-relaxed hover:text-slate-900 transition-colors">
+                                            "${highlightText(note.text, state.searchQuery)}"
+                                        </blockquote>
+                                    </div>
+                                    <div class="flex flex-col gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                        <button onclick="toggleFavorite('${note.loc}')" 
+                                            class="heart-btn p-2 rounded-lg hover:bg-pink-50 transition-colors ${isLiked ? 'liked' : 'text-slate-300 hover:text-pink-500'}"
+                                            title="${isLiked ? 'Remove from favorites' : 'Add to favorites'}">
+                                            <i data-lucide="heart" class="h-5 w-5 ${isLiked ? 'fill-current' : ''}"></i>
+                                        </button>
+                                        <button onclick="copyToClipboard('${escapeHtml(note.text)}')" 
+                                            class="text-slate-300 hover:text-blue-500 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                                            title="Copy to clipboard">
+                                            <i data-lucide="copy" class="h-5 w-5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                }
+            });
+
+            els.notesContainer.innerHTML = html;
+            
+            // Update counts and empty state
+            if (filteredNotesCount === 0) {
+                els.emptyState.classList.remove('hidden');
+                els.notesContainer.classList.add('hidden');
+                els.resultCount.textContent = `No results found`;
+            } else {
+                els.emptyState.classList.add('hidden');
+                els.notesContainer.classList.remove('hidden');
+                els.resultCount.textContent = `Showing ${filteredNotesCount} note${filteredNotesCount !== 1 ? 's' : ''}`;
+            }
+
+            lucide.createIcons();
+        }
+
+        // --- Logic: Favorites ---
+
+        function toggleFavorite(loc) {
+            const index = state.favorites.indexOf(loc);
+            if (index === -1) {
+                state.favorites.push(loc);
+                showToast('Added to favorites', 'heart');
+            } else {
+                state.favorites.splice(index, 1);
+                showToast('Removed from favorites', 'trash-2');
+            }
+            
+            // Persist
+            localStorage.setItem('positioning_favorites', JSON.stringify(state.favorites));
+            
+            updateFavCount();
+            
+            // Efficient Re-render: Only re-render if in Favorites view to remove item, otherwise just toggle class
+            if (state.filterType === 'favorites') {
+                renderNotes();
+            } else {
+                // Find button and toggle class directly for performance
+                // Actually easier to just re-render to keep state consistent with UI
+                renderNotes(); 
+            }
+        }
+
+        function updateFavCount() {
+            const count = state.favorites.length;
+            if (count > 0) {
+                els.favCountBadge.textContent = count;
+                els.favCountBadge.classList.remove('hidden');
+            } else {
+                els.favCountBadge.classList.add('hidden');
+            }
+        }
+
+        // --- Utilities ---
+
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="bg-yellow-200 text-slate-900 px-0.5 rounded">$1</span>');
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('Copied to clipboard!', 'check-circle');
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        }
+
+        function showToast(message, iconName) {
+            els.toastMessage.textContent = message;
+            // Update icon
+            const iconEl = els.toast.querySelector('i');
+            iconEl.setAttribute('data-lucide', iconName || 'check-circle');
+            lucide.createIcons({ root: els.toast });
+
+            els.toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                els.toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        // --- Modal Logic ---
+
+        function showRandomQuote() {
+            const allNotes = bookData.reduce((acc, chapter) => {
+                return acc.concat(chapter.notes.map(n => ({...n, chapterTitle: chapter.title})));
+            }, []);
+
+            const randomNote = allNotes[Math.floor(Math.random() * allNotes.length)];
+            
+            els.modalText.textContent = `"${randomNote.text}"`;
+            els.modalChapter.textContent = randomNote.chapterTitle;
+            els.modalLoc.textContent = randomNote.loc;
+            
+            els.modalOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                els.modalOverlay.classList.remove('opacity-0');
+                els.modalContent.classList.remove('scale-95');
+                els.modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            els.modalOverlay.classList.add('opacity-0');
+            els.modalContent.classList.remove('scale-100');
+            els.modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                els.modalOverlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function copyModalText() {
+            copyToClipboard(els.modalText.textContent.replace(/^"|"$/g, ''));
+        }
+
+        els.modalOverlay.addEventListener('click', (e) => {
+            if (e.target === els.modalOverlay) closeModal();
+        });
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
